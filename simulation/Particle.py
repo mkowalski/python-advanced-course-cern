@@ -1,12 +1,34 @@
+from Vector import Vector
+
+
 class Particle:
 
     def __init__(self, size, position, velocity):
         self.r = size
-        (self.x, self.y) = position
-        (self.vx, self.vy) = velocity
+        (x, y) = position
+        self.p = Vector(x, y)
+        (vx, vy) = velocity
+        self.v = Vector(vx, vy)
+
+    @property
+    def x(self):
+        return self.p.x
+
+    @property
+    def y(self):
+        return self.p.y
+
+    @property
+    def vx(self):
+        return self.v.x
+
+    @property
+    def vy(self):
+        return self.v.y
 
     def move(self, velocity):
-        self.x, self.y = self.x + velocity * self.vx, self.y + velocity * self.vy
+        p = self.p
+        p.x, p.y = self.x + velocity * self.vx, self.y + velocity * self.vy
 
     def bounce(self, board):
         (xmin, xmax, ymin, ymax) = board
@@ -37,24 +59,26 @@ class Particle:
             else: self.y = self.y + near_miss(self.y, ymin, self.r)
 
     def bounce(self, bounding_box):
+        p = self.p
+        v = self.v
         xmin, xmax, ymin, ymax = bounding_box
 
         beyond_right = self.x + self.r - xmax
         if beyond_right > 0:
-            self.x -= 2 * beyond_right
-            self.vx = - self.vx
+            p.x -= 2 * beyond_right
+            v.x = - self.vx
 
         beyond_left = self.x - self.r - xmin
         if beyond_left < 0:
-            self.x -= 2 * beyond_left
-            self.vx = - self.vx
+            p.x -= 2 * beyond_left
+            v.x = - self.vx
 
         beyond_top = self.y + self.r - ymax
         if beyond_top > 0:
-            self.y -= 2 * beyond_top
-            self.vy = - self.vy
+            p.y -= 2 * beyond_top
+            v.y = - self.vy
 
         beyond_bottom = self.y - self.r - ymin
         if beyond_bottom < 0:
-            self.y -= 2 * beyond_bottom
-            self.vy = - self.vy
+            p.y -= 2 * beyond_bottom
+            v.y = - self.vy
