@@ -3,6 +3,8 @@ from math import sqrt
 from hypothesis import given
 from hypothesis.strategies import floats
 
+from pytest import approx
+
 from Vector import Vector
 
 sensible_floats = floats(min_value=0.1, max_value=1e3, allow_nan=False,
@@ -134,4 +136,4 @@ def test_Vector_in_place_division_by_scalar_should_work(x, y, s):
 
 @given(FLOATS, FLOATS)
 def test_Vector_magnitude_should_work(x, y):
-    assert abs(Vector(x, y)) == sqrt(x * x + y * y)
+    assert abs(Vector(x, y)) == approx(sqrt(x * x + y * y))
