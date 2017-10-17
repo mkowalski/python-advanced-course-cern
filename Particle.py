@@ -35,3 +35,26 @@ class Particle:
             elif self.y + self.r > ymax: self.y = self.y - near_miss(self.y, ymax, -self.r)
             elif self.y - self.r < ymin and self.y < ymin: self.y = ymin + far_miss(self.y, ymin, self.r) + self.r
             else: self.y = self.y + near_miss(self.y, ymin, self.r)
+
+    def bounce(self, bounding_box):
+        xmin, xmax, ymin, ymax = bounding_box
+
+        beyond_right = self.x + self.r - xmax
+        if beyond_right > 0:
+            self.x -= 2 * beyond_right
+            self.vx = - self.vx
+
+        beyond_left = self.x - self.r - xmin
+        if beyond_left < 0:
+            self.x -= 2 * beyond_left
+            self.vx = - self.vx
+
+        beyond_top = self.y + self.r - ymax
+        if beyond_top > 0:
+            self.y -= 2 * beyond_top
+            self.vy = - self.vy
+
+        beyond_bottom = self.y - self.r - ymin
+        if beyond_bottom < 0:
+            self.y -= 2 * beyond_bottom
+            self.vy = - self.vy
