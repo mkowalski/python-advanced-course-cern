@@ -1,2 +1,2 @@
 def magic(i, q):
-    return 0
+    return q
