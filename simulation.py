@@ -1,109 +1,121 @@
 import sys
-if sys.argv[1] == "tkinter":
-    import tkinter as tk
-
-    master = tk.Tk()
-
-    w = tk.Canvas(master, width=600, height=400, bg='black')
-    w.pack()
-
-    x, y = w.winfo_height() / 2, w.winfo_width() / 2
-    vx, vy = 80.0, 150.0
-
-    particle_size = 60
-    particle = w.create_oval(x, y, particle_size, particle_size,
-                             outline='yellow')
+import tkinter as tk
+import pyglet
+from math import sin, cos, pi, sqrt
 
 
-    def update(dt, refresh_time=17):
-        global x, y, vx, vy
-        oldx, oldy = x, y
-        x += vx * dt
-        y += vy * dt
-
-        if x + particle_size > w.winfo_width():
-            x = w.winfo_width() - particle_size
-            vx = - vx
-
-        if x < 0:
-            x = 0
-            vx = - vx
-
-        if y + particle_size > w.winfo_height():
-            y = w.winfo_height() - particle_size
-            vy = - vy
-
-        if y < 0:
-            y = 0
-            vy = - vy
-
-        w.move(particle, x - oldx, y - oldy)
-        w.update()
-
-        w.after(refresh_time, update, 1 / 60.0)
+class Display:
+    pass
 
 
-    update(0)
+class PygletDisplay(Display):
 
-    tk.mainloop()
+    def __init__(self):
+        self.window = pyglet.window.Window(600, 400)
+        self.fps_display = pyglet.clock.ClockDisplay()
 
-elif sys.argv[1] == "pyglet":
-    import pyglet
-    from math import sin, cos, pi, sqrt
+        self.x, self.y = self.window.width / 2, self.window.height / 2
+        self.vx, self.vy = 80.0, 150.0
 
-    twopi = 2 * pi
+        self.particle_size = 30
 
-    window = pyglet.window.Window(600, 400)
-    fps_display = pyglet.clock.ClockDisplay()
+        self.window.push_handlers(self.on_draw)
 
-    x, y = window.width / 2, window.height / 2
-    vx, vy = 80.0, 150.0
-
-    particle_size = 30
-
-
-    @window.event
-    def on_draw():
-        window.clear()
+    def on_draw(self):
+        self.window.clear()
 
         def circle_vertices():
+            twopi = 2 * pi
             delta_angle = twopi / 20
             angle = 0
             while angle < twopi:
-                yield x + particle_size * cos(angle)
-                yield y + particle_size * sin(angle)
+                yield self.x + self.particle_size * cos(angle)
+                yield self.y + self.particle_size * sin(angle)
                 angle += delta_angle
 
         pyglet.gl.glColor3f(1.0, 1.0, 0)
         pyglet.graphics.draw(20, pyglet.gl.GL_LINE_LOOP,
                              ('v2f', tuple(circle_vertices())))
 
-        fps_display.draw()
+        self.fps_display.draw()
+
+    def update(self, dt):
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+
+        if self.x + self.particle_size > self.window.width:
+            self.x = self.window.width - self.particle_size
+            self.vx = - self.vx
+
+        if self.x - self.particle_size < 0:
+            self.x = self.particle_size
+            self.vx = - self.vx
+
+        if self.y + self.particle_size > self.window.height:
+            self.y = self.window.height - self.particle_size
+            self.vy = - self.vy
+
+        if self.y - self.particle_size < 0:
+            self.y = self.particle_size
+            self.vy = - self.vy
+
+    def __call__(self, *args, **kwargs):
+        pyglet.clock.schedule_interval(self.update, 1 / 60.0)
+        pyglet.app.run()
 
 
-    def update(dt):
-        global x, y, vx, vy
-        x += vx * dt
-        y += vy * dt
+class TkinterDisplay(Display):
 
-        if x + particle_size > window.width:
-            x = window.width - particle_size
-            vx = - vx
+    def __init__(self):
+        master = tk.Tk()
 
-        if x - particle_size < 0:
-            x = particle_size
-            vx = - vx
+        self.w = tk.Canvas(master, width=600, height=400, bg='black')
+        self.w.pack()
 
-        if y + particle_size > window.height:
-            y = window.height - particle_size
-            vy = - vy
+        self.x, self.y = self.w.winfo_height() / 2, self.w.winfo_width() / 2
+        self.vx, self.vy = 80.0, 150.0
 
-        if y - particle_size < 0:
-            y = particle_size
-            vy = - vy
+        self.particle_size = 60
+        self.particle = self.w.create_oval(self.x, self.y, self.particle_size, self.particle_size, outline='yellow')
+
+    def update(self, dt, refresh_time=17):
+        oldx, oldy = self.x, self.y
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+
+        if self.x + self.particle_size > self.w.winfo_width():
+            self.x = self.w.winfo_width() - self.particle_size
+            self.vx = - self.vx
+
+        if self.x < 0:
+            self.x = 0
+            self.vx = - self.vx
+
+        if self.y + self.particle_size > self.w.winfo_height():
+            self.y = self.w.winfo_height() - self.particle_size
+            self.vy = - self.vy
+
+        if self.y < 0:
+            self.y = 0
+            self.vy = - self.vy
+
+        self.w.move(self.particle, self.x - oldx, self.y - oldy)
+        self.w.update()
+
+        self.w.after(refresh_time, self.update, 1 / 60.0)
+
+    def __call__(self, *args, **kwargs):
+        self.update(0)
+        tk.mainloop()
 
 
-    pyglet.clock.schedule_interval(update, 1 / 60.0)
+if sys.argv[1] == "tkinter":
+    simulation = TkinterDisplay()
 
-    pyglet.app.run()
+elif sys.argv[1] == "pyglet":
+    simulation = PygletDisplay()
 
+else:
+    raise Exception("No command")
+
+simulation()
