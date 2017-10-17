@@ -10,6 +10,13 @@ class Particle:
 
     def bounce(self, board):
         (xmin, xmax, ymin, ymax) = board
+
+        def far_miss(particle, border, size):
+            return abs(border - particle) + size
+
+        def near_miss(particle, border, size):
+            return abs(particle - size - border) * 2
+
         # A whole particle inside
         if self.x - self.r >= xmin and self.x + self.r <= xmax and self.y - self.r >= ymin and self.y + self.r <= ymax:
             pass
@@ -19,45 +26,37 @@ class Particle:
             self.vx = -self.vx
             # ... far
             if self.x < xmin:
-                miss = abs(xmin - self.x) + self.r
-                self.x = xmin + miss + self.r
+                self.x = xmin + far_miss(self.x, xmin, self.r) + self.r
             # ... near
             else:
-                miss = abs(self.x - self.r - xmin)
-                self.x = self.x + miss*2
+                self.x = self.x + near_miss(self.x, xmin, self.r)
 
         # Right border crossed
         elif self.x + self.r > xmax:
             self.vx = -self.vx
             # ... far
             if self.x > xmax:
-                miss = abs(xmax - self.x) + self.r
-                self.x = xmax - miss - self.r
+                self.x = xmax - far_miss(self.x, xmax, self.r) - self.r
             # ... near
             else:
-                miss = abs(self.x + self.r - xmax)
-                self.x = self.x - miss * 2
+                self.x = self.x - near_miss(self.x, xmax, -self.r)
 
         # Top border crossed
         elif self.y + self.r > ymax:
             self.vy = -self.vy
             # ... far
             if self.y > ymax:
-                miss = abs(ymax - self.y) + self.r
-                self.y = ymax - miss - self.r
+                self.y = ymax - far_miss(self.y, ymax, self.r) - self.r
             # ... near
             else:
-                miss = abs(self.y + self.r - ymax)
-                self.y = self.y - miss * 2
+                self.y = self.y - near_miss(self.y, ymax, -self.r)
 
         # Bottom border crossed
         elif self.y - self.r < ymin:
             self.vy = -self.vy
             # ... far
             if self.y < ymin:
-                miss = abs(ymin - self.y) + self.r
-                self.y = ymin + miss + self.r
+                self.y = ymin + far_miss(self.y, ymin, self.r) + self.r
             # ... near
             else:
-                miss = abs(self.y - self.r - ymin)
-                self.y = self.y + miss*2
+                self.y = self.y + near_miss(self.y, ymin, self.r)
