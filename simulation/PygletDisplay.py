@@ -8,7 +8,7 @@ class PygletDisplay(Display):
     def __init__(self):
         super(PygletDisplay, self).__init__()
 
-        self.w = pyglet.window.Window(600, 400)
+        self.w = pyglet.window.Window(self.canvas_size[0], self.canvas_size[1])
         self.fps_display = pyglet.clock.ClockDisplay()
 
         self.w.push_handlers(self.on_draw)
@@ -32,11 +32,6 @@ class PygletDisplay(Display):
                              ('v2f', tuple(circle_vertices())))
 
         self.fps_display.draw()
-
-    def update(self, dt):
-        p, w = self.p, self.w
-        p.move(dt)
-        p.bounce((0, w.get_size()[0], 0, w.get_size()[1]))
 
     def __call__(self, *args, **kwargs):
         pyglet.clock.schedule_interval(self.update, self.refresh_rate)
