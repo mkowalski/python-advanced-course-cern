@@ -1,4 +1,4 @@
-from iterators import triplet
+from iterators2 import triplet
 from hypothesis import given
 from hypothesis.strategies import lists, tuples
 from hypothesis.strategies import integers as INT
