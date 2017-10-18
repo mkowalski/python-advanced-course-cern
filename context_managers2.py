@@ -1,6 +1,7 @@
 import contextlib
 import _pytest
 
+
 @contextlib.contextmanager
 def MyRaises2(exc_exp):
     exc_ret = object.__new__(_pytest._code.ExceptionInfo)
