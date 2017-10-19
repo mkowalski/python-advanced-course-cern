@@ -40,13 +40,10 @@ def Vector(spec):
 
     def __repr__(self):
         repr = list('Vector("')
-        for elem in self.dimensions:
-            repr.append(elem)
+        [ repr.append(elem) for elem in self.dimensions ]
         repr.append('")(')
-        for elem in self.dimensions:
-            repr.append(str(getattr(self, elem)))
-            repr.append(',')
-        repr[-1] = ')'
+        [ repr.append(str(getattr(self, elem)) + ',') for elem in self.dimensions ]
+        repr.append(')')
         return "".join(repr)
 
     def __eq__(self, other):
