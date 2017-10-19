@@ -1,3 +1,6 @@
+from operator import add, sub, mul, truediv, neg
+
+
 def Vector(spec):
 
     def __init__(self, *args):
@@ -14,28 +17,19 @@ def Vector(spec):
     def __setitem__(self, arg, val):
         setattr(self, self.dimensions[arg], val)
 
-    def __add__(self, other):
-        new = type(self)()
-        for elem in self.dimensions:
-            setattr(new, elem, getattr(self, elem) + getattr(other, elem))
-        return new
+    def _arithmetic_generator(operation):
+        def fun(self, other):
+            new = type(self)()
+            if type(self) == type(other): arg = (lambda x: getattr(other, x))
+            else: arg = (lambda x: other)
+            [ setattr(new, elem, operation(getattr(self, elem), arg(elem))) for elem in self.dimensions ]
+            return new
+        return fun
 
-    def __sub__(self, other):
+    def __neg__(self):
         new = type(self)()
         for elem in self.dimensions:
-            setattr(new, elem, getattr(self, elem) - getattr(other, elem))
-        return new
-
-    def __mul__(self, other):
-        new = type(self)()
-        for elem in self.dimensions:
-            setattr(new, elem, getattr(self, elem) * other)
-        return new
-
-    def __truediv__(self, other):
-        new = type(self)()
-        for elem in self.dimensions:
-            setattr(new, elem, getattr(self, elem) / other)
+            setattr(new, elem, neg(getattr(self, elem)))
         return new
 
     def __abs__(self):
@@ -43,12 +37,6 @@ def Vector(spec):
         for elem in self.dimensions:
             res += getattr(self, elem) ** 2
         return res ** 0.5
-
-    def __neg__(self):
-        new = type(self)()
-        for elem in self.dimensions:
-            setattr(new, elem, getattr(self, elem) * (-1))
-        return new
 
     def __repr__(self):
         repr = list('Vector("')
@@ -71,13 +59,13 @@ def Vector(spec):
         '__init__': __init__,
         '__getitem__': __getitem__,
         '__setitem__': __setitem__,
-        '__add__': __add__,
-        '__sub__': __sub__,
-        '__mul__': __mul__,
-        '__rmul__': __mul__,
-        '__truediv__': __truediv__,
-        '__abs__': __abs__,
+        '__add__': _arithmetic_generator(add),
+        '__sub__': _arithmetic_generator(sub),
+        '__mul__': _arithmetic_generator(mul),
+        '__rmul__': _arithmetic_generator(mul),
+        '__truediv__': _arithmetic_generator(truediv),
         '__neg__': __neg__,
+        '__abs__': __abs__,
         '__repr__': __repr__,
         '__eq__': __eq__,
     })
