@@ -1,4 +1,4 @@
-from Vector import Vector
+from Vector import Vector2D as Vector
 
 
 class Particle:

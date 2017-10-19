@@ -1,45 +1,87 @@
-class Vector:
+def Vector(spec):
 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self, *args):
+        if len(args) != len(self.dimensions) and len(args) != 0: raise TypeError
+        for id, char in enumerate(self.dimensions):
+            try:
+                setattr(self, char, args[id])
+            except IndexError:
+                setattr(self, char, 0)
 
     def __getitem__(self, arg):
-        if arg == 0: return self.x
-        elif arg == 1: return self.y
-        else: raise KeyError()
+        return getattr(self, self.dimensions[arg])
 
-    def __setitem__(self, key, value):
-        if key == 0: self.x = value
-        elif key == 1: self.y = value
-        else: raise KeyError()
+    def __setitem__(self, arg, val):
+        setattr(self, self.dimensions[arg], val)
 
     def __add__(self, other):
-        self.x += other.x
-        self.y += other.y
-        return self
+        new = type(self)()
+        for elem in self.dimensions:
+            setattr(new, elem, getattr(self, elem) + getattr(other, elem))
+        return new
 
     def __sub__(self, other):
-        self.x -= other.x
-        self.y -= other.y
-        return self
-
-    def __neg__(self):
-        self.x = -self.x
-        self.y = -self.y
-        return self
+        new = type(self)()
+        for elem in self.dimensions:
+            setattr(new, elem, getattr(self, elem) - getattr(other, elem))
+        return new
 
     def __mul__(self, other):
-        self.x *= other
-        self.y *= other
-        return self
-
-    __rmul__ = __mul__
+        new = type(self)()
+        for elem in self.dimensions:
+            setattr(new, elem, getattr(self, elem) * other)
+        return new
 
     def __truediv__(self, other):
-        self.x = self.x / other
-        self.y = self.y / other
-        return self
+        new = type(self)()
+        for elem in self.dimensions:
+            setattr(new, elem, getattr(self, elem) / other)
+        return new
 
     def __abs__(self):
-        return (self.x ** 2 + self.y ** 2) ** 0.5
+        res = 0
+        for elem in self.dimensions:
+            res += getattr(self, elem) ** 2
+        return res ** 0.5
+
+    def __neg__(self):
+        new = type(self)()
+        for elem in self.dimensions:
+            setattr(new, elem, getattr(self, elem) * (-1))
+        return new
+
+    def __repr__(self):
+        repr = list('Vector("')
+        for elem in self.dimensions:
+            repr.append(elem)
+        repr.append('")(')
+        for elem in self.dimensions:
+            repr.append(str(getattr(self, elem)))
+            repr.append(',')
+        repr[-1] = ')'
+        return "".join(repr)
+
+    def __eq__(self, other):
+        for elem in self.dimensions:
+            if getattr(self, elem) != getattr(other, elem): return False
+        return True
+
+    return type('Vector('+spec+')', (), {
+        'dimensions': spec,
+        '__init__': __init__,
+        '__getitem__': __getitem__,
+        '__setitem__': __setitem__,
+        '__add__': __add__,
+        '__sub__': __sub__,
+        '__mul__': __mul__,
+        '__rmul__': __mul__,
+        '__truediv__': __truediv__,
+        '__abs__': __abs__,
+        '__neg__': __neg__,
+        '__repr__': __repr__,
+        '__eq__': __eq__,
+    })
+
+
+Vector2D = Vector('xy')
+Vector3D = Vector('xyz')

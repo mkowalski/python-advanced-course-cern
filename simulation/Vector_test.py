@@ -1,139 +1,140 @@
+from pytest import mark, raises
+from Vector import Vector, Vector2D, Vector3D
 from math import sqrt
 
-from hypothesis import given
-from hypothesis.strategies import floats
+component_access_test_data = (
+    "Vector names data data_new".split(),
+    ((Vector2D, 'xy',  ( 1,2),   (3,4)),
+     (Vector3D, 'xyz', (-2,7,3), (4,3,8)),
+     (Vector('abcd'), 'abcd', (8,6,5,2), (1,7,8,7))))
 
-from pytest import approx
+@mark.parametrize(*component_access_test_data)
+def test_should_be_able_to_get_vector_components_by_name(Vector, names, data, data_new):
+    v = Vector(*data)
+    for name, datum in zip(names, data):
+        assert getattr(v, name) == datum
 
-from Vector import Vector
+@mark.parametrize(*component_access_test_data)
+def test_should_be_able_to_set_components_by_name(Vector, names, data, data_new):
+    v = Vector(*data)
+    for name, datum, new_datum in zip(names, data, data_new):
+        assert getattr(v, name) != new_datum
+        setattr(v, name, new_datum)
+        assert getattr(v, name) == new_datum
 
-sensible_floats = floats(min_value=0.1, max_value=1e3, allow_nan=False,
-                         allow_infinity=False)
-FLOATS = sensible_floats
+@mark.parametrize(*component_access_test_data)
+def test_should_be_able_to_access_components_by_number(Vector, names, data, data_new):
+    v = Vector(*data)
+    for dim, datum in enumerate(data):
+        assert v[dim] == datum
 
+@mark.parametrize(*component_access_test_data)
+def test_should_be_able_to_set_components_by_number(Vector, names, data, data_new):
+    v = Vector(*data)
+    for dim, (datum, new_datum) in enumerate(zip(data, data_new)):
+        assert v[dim] != new_datum
+        v[dim] = new_datum
+        assert v[dim] == new_datum
 
-@given(FLOATS, FLOATS)
-def test_Vector_components_should_be_accessible_as_named_attributes(x, y):
-    v = Vector(x, y)
-    assert v.x == x
-    assert v.y == y
+vector_binary_op_test_data = (
+    "Vector names data_l data_r".split(),
+    ((Vector2D, 'xy',         (1, 2),      (3,4)),
+     (Vector3D, 'xyz',        (5.1,6.2,1.0),   (7.3,8.4,2.0)),
+     (Vector('xyzt'), 'xyzt', (5.1,2,4,2), (1,3,9,2.8))))
 
+@mark.parametrize(*vector_binary_op_test_data)
+def test_should_be_able_to_add_vectors(Vector, names, data_l, data_r):
+    v = Vector(*data_l) + Vector(*data_r)
+    for name, datum_l, datum_r in zip(names, data_l, data_r):
+        assert getattr(v,name) == datum_l + datum_r
 
-@given(FLOATS, FLOATS)
-def test_Vector_components_should_be_accessible_by_indexing(x, y):
-    v = Vector(x, y)
-    assert v[0] == x
-    assert v[1] == y
+@mark.parametrize(*vector_binary_op_test_data)
+def test_should_be_able_to_add_vectors_in_place(Vector, names, data_l, data_r):
+    v =  Vector(*data_l)
+    v += Vector(*data_r)
+    for name, datum_l, datum_r in zip(names, data_l, data_r):
+        assert getattr(v,name) == datum_l + datum_r
 
+@mark.parametrize(*vector_binary_op_test_data)
+def test_should_be_able_to_subtract_vectors(Vector, names, data_l, data_r):
+    v = Vector(*data_l) - Vector(*data_r)
+    for name, datum_l, datum_r in zip(names, data_l, data_r):
+        assert getattr(v,name) == datum_l - datum_r
 
-@given(FLOATS, FLOATS, FLOATS, FLOATS)
-def test_Vector_attribute_setting_should_work(x, y, new_x, new_y):
-    v = Vector(x, y)
-    v.x = new_x
-    assert v.x == new_x
-    assert v.y == y
-    v.y = new_y
-    assert v.y == new_y
-    assert v.x == new_x
+vector_scalar_binary_op_test_data = (
+    "Vector names data s".split(),
+    ((Vector2D, 'xy', (1, 2), 3),
+     (Vector3D, 'xyz', (4, 5,5), 6.3),
+     (Vector('pqrst'), 'pqrst', (8,7,6,5,4), 2.5)))
 
+@mark.parametrize(*vector_scalar_binary_op_test_data)
+def test_should_be_able_to_multiply_vector_by_scalar_on_right(Vector, names, data, s):
+    v = Vector(*data) * s
+    for name, datum in zip(names, data):
+        assert getattr(v, name) == datum * s
 
-@given(FLOATS, FLOATS, FLOATS, FLOATS)
-def test_Vector_setting_via_index_should_work(x, y, new_x, new_y):
-    v = Vector(x, y)
-    v[0] = new_x
-    assert v.x == new_x
-    assert v.y == y
-    v[1] = new_y
-    assert v.y == new_y
-    assert v.x == new_x
+@mark.parametrize(*vector_scalar_binary_op_test_data)
+def test_should_be_able_to_multiply_vector_by_scalar_on_left(Vector, names, data, s):
+    v = s * Vector(*data)
+    for name, datum in zip(names, data):
+        assert getattr(v, name) == datum * s
 
+@mark.parametrize(*vector_scalar_binary_op_test_data)
+def test_should_be_able_to_divide_vector_by_scalar_on_right(Vector, names, data, s):
+    v = Vector(*data) / s
+    for name, datum in zip(names, data):
+        assert getattr(v, name) == datum / s
 
-@given(FLOATS, FLOATS, FLOATS, FLOATS)
-def test_Vector_addition_should_work(x1, y1, x2, y2):
-    u = Vector(x1, y1)
-    v = Vector(x2, y2)
-    w = u + v
-    assert w.x == x1 + x2
-    assert w.y == y1 + y2
+@mark.parametrize(("Vector", "data"),
+                  ((Vector2D, (1,)),
+                   (Vector2D, (1,2,3)),
+                   (Vector('abc'), (1,2)),
+                   (Vector('abcde'), range(10))))
+def test_constructor_should_raise_TypeError_on_wrong_number_of_args(Vector, data):
+    with raises(TypeError):
+        Vector(*data)
 
+equality_data = ("l r result".split(),
+                 ((Vector2D(1,2), Vector2D(1,2), True),
+                  (Vector2D(1,2), Vector2D(2,1), False),
+                  (Vector3D(2,3,5), Vector3D(2,3,5), True),
+                  (Vector3D(2,3,5), Vector3D(2,3,4), False),
+                  (Vector('abcd')(9,8,7,6), Vector('abcd')(9,8,7,6), True)))
 
-@given(FLOATS, FLOATS, FLOATS, FLOATS)
-def test_Vector_subtraction_should_work(x1, y1, x2, y2):
-    u = Vector(x1, y1)
-    v = Vector(x2, y2)
-    w = u - v
-    assert w.x == x1 - x2
-    assert w.y == y1 - y2
+@mark.parametrize(*equality_data)
+def test_vector_equality_operator_should_work(l,r, result):
+    assert (l == r) == result
 
+@mark.parametrize(*equality_data)
+def test_vector_inequality_operator_should_work(l,r, result):
+    assert (l != r) == (not result)
 
-@given(FLOATS, FLOATS, FLOATS, FLOATS)
-def test_Vector_in_place_addition_should_work(x1, y1, x2, y2):
-    u = Vector(x1, y1)
-    v = Vector(x2, y2)
-    u += v
-    assert u.x == x1 + x2
-    assert u.y == y1 + y2
+@mark.parametrize("v length".split(),
+                  ((Vector2D(3,4),   5),
+                   (Vector3D(1,2,3), sqrt(14)),
+                   (Vector('abcd')(3,5,4,6), sqrt(86))))
+def test_vector_abs_should_work(v, length):
+    assert abs(v) == length
 
+@mark.parametrize("v",
+                  (Vector2D(1,2),
+                   Vector3D(4,5,6),
+                   Vector('abcd')(7,8,9,0)))
+def test_vector_repr_should_be_readable(v):
+    assert eval(repr(v)) == v
 
-@given(FLOATS, FLOATS, FLOATS, FLOATS)
-def test_Vector_in_place_subtraction_should_work(x1, y1, x2, y2):
-    u = Vector(x1, y1)
-    v = Vector(x2, y2)
-    u -= v
-    assert u.x == x1 - x2
-    assert u.y == y1 - y2
+@mark.parametrize('v,n',
+                  ((Vector2D(1,2), 2),
+                   (Vector3D(1,2,3), 3),
+                   (Vector('abcd')(1,2,3,4), 4)))
+def test_getitem_should_raise_IndexError_when_appropriate(v,n):
+    with raises(IndexError):
+        v[n]
 
-
-@given(FLOATS, FLOATS)
-def test_Vector_unary_minus_should_work(x, y):
-    v = Vector(x, y)
-    w = -v
-    assert w.x == -x
-    assert w.y == -y
-
-
-@given(FLOATS, FLOATS, FLOATS)
-def test_Vector_multiplication_by_scalar_on_left_should_work(x, y, s):
-    v = Vector(x, y)
-    w = s * v
-    assert w.x == x * s
-    assert w.y == y * s
-
-
-@given(FLOATS, FLOATS, FLOATS)
-def test_Vector_multiplication_by_scalar_on_right_should_work(x, y, s):
-    v = Vector(x, y)
-    w = v * s
-    assert w.x == x * s
-    assert w.y == y * s
-
-
-@given(FLOATS, FLOATS, FLOATS)
-def test_Vector_division_by_scalar_should_work(x, y, s):
-    s = float(s)
-    v = Vector(x, y)
-    w = v / s
-    assert w.x == x / s
-    assert w.y == y / s
-
-
-@given(FLOATS, FLOATS, FLOATS)
-def test_Vector_in_place_multiplication_by_scalar_should_work(x, y, s):
-    v = Vector(x, y)
-    v *= s
-    assert v.x == x * s
-    assert v.y == y * s
-
-
-@given(FLOATS, FLOATS, FLOATS)
-def test_Vector_in_place_division_by_scalar_should_work(x, y, s):
-    s = float(s)
-    v = Vector(x, y)
-    v /= s
-    assert v.x == x / s
-    assert v.y == y / s
-
-
-@given(FLOATS, FLOATS)
-def test_Vector_magnitude_should_work(x, y):
-    assert abs(Vector(x, y)) == approx(sqrt(x * x + y * y))
+@mark.parametrize("v",
+                  ((Vector2D(3,4)),
+                   (Vector3D(1,2,3)),
+                   (Vector('abcd')(3,5,4,6))))
+def test_vector_neg_should_work(v):
+    for p,n in zip(v,-v):
+        assert n == -p
