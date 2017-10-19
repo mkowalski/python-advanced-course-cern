@@ -16,9 +16,7 @@ class PygletDisplay(Display):
     def on_draw(self):
         self.w.clear()
 
-        def circle_vertices():
-            p = self.p
-
+        def circle_vertices(p):
             twopi = 2 * pi
             delta_angle = twopi / 20
             angle = 0
@@ -27,9 +25,10 @@ class PygletDisplay(Display):
                 yield p.y + p.r * sin(angle)
                 angle += delta_angle
 
-        pyglet.gl.glColor3f(1.0, 1.0, 0)
-        pyglet.graphics.draw(20, pyglet.gl.GL_LINE_LOOP,
-                             ('v2f', tuple(circle_vertices())))
+        for p in self.particles:
+            pyglet.gl.glColor3f(*p.colour.as_rgb_01())
+            pyglet.graphics.draw(20, pyglet.gl.GL_LINE_LOOP,
+                                ('v2f', tuple(circle_vertices(p))))
 
         self.fps_display.draw()
 

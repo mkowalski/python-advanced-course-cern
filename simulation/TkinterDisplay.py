@@ -18,12 +18,13 @@ class TkinterDisplay(Display):
     def update(self, dt):
         super(TkinterDisplay, self).update(dt)
 
-        p, w = self.p, self.w
+        w = self.w
         w.delete(tk.ALL)
 
-        w.create_oval(p.x - p.r, p.y - p.r,
-                      p.x + p.r, p.y + p.r,
-                      outline='yellow')
+        for p in self.particles:
+            w.create_oval(p.x - p.r, p.y - p.r,
+                          p.x + p.r, p.y + p.r,
+                          outline='#' + p.colour.as_rgb_f())
 
         w.update()
         w.after(self.refresh_time, self.update, self.refresh_rate)

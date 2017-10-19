@@ -3,12 +3,13 @@ from Vector import Vector
 
 class Particle:
 
-    def __init__(self, size, position, velocity):
+    def __init__(self, size, position, velocity, colour):
         self.r = size
         (x, y) = position
         self.p = Vector(x, y)
         (vx, vy) = velocity
         self.v = Vector(vx, vy)
+        self.colour = colour
 
     @property
     def x(self):
