@@ -1,47 +1,33 @@
 class assert_evolution:
 
-    def __init__(self, fun, operator):
-        self.fun = fun
+    def __init__(self, new, operator):
         self.operator = operator
         self.prev = None
-        self.current = None
+        self.new = new
 
     def __call__(self):
-        self.current = self.fun()
-        if self.prev and not self.operator(self.current, self.prev):
+        if self.prev and not self.operator(self.new(), self.prev):
             raise AssertionError
-        self.current, self.prev = self.prev, self.current
+        self.prev = self.new()
 
 
-def assert_evolution(fun, operator):
-    fun = fun
-    operator = operator
-    c = [None, None]
+def assert_evolution(new, operator):
+    prev = None
 
     def closure():
-        c[1] = fun()
-        if c[0] and not operator(c[1], c[0]):
+        nonlocal prev
+        if prev and not operator(new(), prev):
             raise AssertionError
-        c[0], c[1] = c[1], c[0]
+        prev = new()
     return closure
 
 
-def assert_evolution(fun, operator):
-
-    def gen_assert_evolution(fun, operator):
-        yield
-
-        fun = fun
-        operator = operator
-        c = [None, None]
-
+def assert_evolution(new, operator):
+    def gen_assert_evolution():
+        prev = None
         while True:
-            c[1] = fun()
-            if c[0] and not operator(c[1], c[0]):
+            if prev and not operator(new(), prev):
                 raise AssertionError
-            c[0], c[1] = c[1], c[0]
+            prev = new()
             yield
-
-    c = gen_assert_evolution(fun, operator)
-    next(c)
-    return c.__next__
+    return gen_assert_evolution().__next__
